@@ -211,10 +211,17 @@ def salvar_base(dados: dict) -> None:
 
 
 def remover_base(base_id: str) -> None:
+    """Oculta da consulta pública (soft delete)."""
     with conectar() as conn:
         conn.execute("UPDATE bases SET ativo = 0 WHERE id = ?", (base_id,))
 
 
+def excluir_base(base_id: str) -> None:
+    """Remove permanentemente base, colaboradores e chamados vinculados."""
+    with conectar() as conn:
+        conn.execute("DELETE FROM chamados WHERE base_id = ?", (base_id,))
+        conn.execute("DELETE FROM colaboradores WHERE base_id = ?", (base_id,))
+        conn.execute("DELETE FROM bases WHERE id = ?", (base_id,))
 def listar_colaboradores(base_id: str | None = None, apenas_ativos: bool = True) -> list[dict]:
     q = "SELECT * FROM colaboradores WHERE 1=1"
     params: list = []

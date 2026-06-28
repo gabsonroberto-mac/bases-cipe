@@ -6,6 +6,7 @@ Chamados com foto · colaboradores · mapa por setor · administração.
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 
 import streamlit as st
@@ -60,6 +61,36 @@ def url_maps_base(base: dict) -> str | None:
 
 def url_maps(lat: float, lng: float) -> str:
     return f"https://www.google.com/maps?q={lat},{lng}"
+
+
+def fmt_coord(val: float | None) -> str:
+    if val is None:
+        return ""
+    return f"{float(val):.8f}".rstrip("0").rstrip(".")
+
+
+def parse_coord(texto: str) -> float | None:
+    t = (texto or "").strip().replace(",", ".")
+    if not t:
+        return None
+    try:
+        return round(float(t), 8)
+    except ValueError:
+        return None
+
+
+def extrair_coords_url(url: str) -> tuple[float, float] | None:
+    if not url:
+        return None
+    for pattern in (
+        r"@(-?\d+\.?\d*),(-?\d+\.?\d*)",
+        r"[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)",
+        r"!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)",
+    ):
+        m = re.search(pattern, url)
+        if m:
+            return round(float(m.group(1)), 8), round(float(m.group(2)), 8)
+    return None
 
 
 def rotulo_base(b: dict) -> str:
@@ -241,11 +272,29 @@ def pagina_admin() -> None:
     with aba_bases:
         st.markdown("### Editar ou adicionar base")
         bases = db.listar_bases(apenas_ativas=False)
+
+        with st.expander("Ver todas as bases (ativas e ocultas)", expanded=False):
+            if not bases:
+                st.caption("Nenhuma base cadastrada.")
+            for b in bases:
+                status = "ativa" if b.get("ativo") else "oculta"
+                st.markdown(f"- **{b['titulo']}** · `{b['id']}` · _{status}_")
+
         ids = ["— nova base —"] + [b["id"] for b in bases]
-        esc = st.selectbox("Base", ids)
+        esc = st.selectbox("Base", ids, format_func=lambda x: (
+            "— nova base —" if x == "— nova base —"
+            else f"{db.obter_base(x)['titulo']} ({x})"
+            + (" — oculta" if not db.obter_base(x).get("ativo") else "")
+        ))
         atual = db.obter_base(esc) if esc != "— nova base —" else None
+        editando = esc != "— nova base —"
         with st.form("form_base"):
-            bid = st.text_input("ID (slug)", value=esc if esc != "— nova base —" else "base_nova")
+            bid = st.text_input(
+                "ID (slug)",
+                value=esc if editando else "base_nova",
+                disabled=editando,
+                help="O ID não muda ao editar — evita duplicar base por engano.",
+            )
             titulo = st.text_input("Nome", value=atual["titulo"] if atual else "")
             setor_id = st.selectbox(
                 "Setor",
@@ -253,11 +302,23 @@ def pagina_admin() -> None:
                 index=([s["id"] for s in setores].index(atual["setor_id"]) if atual else 0),
                 format_func=lambda x: next(s["nome"] for s in setores if s["id"] == x),
             )
+            st.caption(
+                "Coordenadas: use **ponto** decimal (ex.: `-12.778912`). "
+                "No Google Maps: clique com botão direito no local → copie lat, lng."
+            )
             c1, c2 = st.columns(2)
             with c1:
-                lat = st.number_input("Latitude", value=float(atual["lat"]) if atual else -13.05, format="%.6f")
+                lat_str = st.text_input(
+                    "Latitude",
+                    value=fmt_coord(atual["lat"]) if atual else "-13.05",
+                    placeholder="-12.778912",
+                )
             with c2:
-                lng = st.number_input("Longitude", value=float(atual["lng"]) if atual else -39.15, format="%.6f")
+                lng_str = st.text_input(
+                    "Longitude",
+                    value=fmt_coord(atual["lng"]) if atual else "-39.15",
+                    placeholder="-38.919234",
+                )
             endereco = st.text_input("Endereço", value=atual.get("endereco") if atual else "")
             telefone = st.text_input("Telefone base", value=atual.get("telefone") if atual else "")
             link_maps = st.text_input(
@@ -267,33 +328,84 @@ def pagina_admin() -> None:
                 help="Abra o local no Google Maps → Compartilhar → Copiar link. "
                 "Se preenchido, substitui o link automático das coordenadas.",
             )
+            usar_coords_link = st.checkbox(
+                "Preencher lat/lng automaticamente do link (quando o link tiver coordenadas na URL)",
+                value=False,
+            )
             observacao = st.text_area("Observação", value=atual.get("observacao") if atual else "")
             destaque = st.checkbox("Destaque", value=bool(atual.get("destaque")) if atual else False)
             estrut = st.checkbox("Em estruturação", value=bool(atual.get("em_estruturacao")) if atual else False)
             ativo = st.checkbox("Ativa", value=bool(atual.get("ativo", 1)) if atual else True)
             if st.form_submit_button("Salvar base", type="primary"):
-                db.salvar_base(
-                    {
-                        "id": bid.strip(),
-                        "titulo": titulo.strip(),
-                        "setor_id": setor_id,
-                        "lat": lat,
-                        "lng": lng,
-                        "endereco": endereco,
-                        "telefone": telefone,
-                        "link_maps": link_maps.strip(),
-                        "observacao": observacao,
-                        "destaque": destaque,
-                        "em_estruturacao": estrut,
-                        "ativo": ativo,
-                    }
+                lat = parse_coord(lat_str)
+                lng = parse_coord(lng_str)
+                if usar_coords_link and link_maps.strip():
+                    coords = extrair_coords_url(link_maps.strip())
+                    if coords:
+                        lat, lng = coords
+                    else:
+                        st.warning(
+                            "Link curto (maps.app.goo.gl) não traz coordenadas na URL. "
+                            "Informe lat/lng manualmente ou use link longo do Google Maps."
+                        )
+                if lat is None or lng is None:
+                    st.error("Latitude e longitude inválidas. Exemplo: -12.778912 e -38.919234")
+                elif not (-20 <= lat <= -8) or not (-50 <= lng <= -32):
+                    st.warning(
+                        f"Coordenadas fora da Bahia ({lat}, {lng}). Confira sinal negativo e se não invertou lat/lng."
+                    )
+                else:
+                    salvar_id = esc if editando else bid.strip()
+                    db.salvar_base(
+                        {
+                            "id": salvar_id,
+                            "titulo": titulo.strip(),
+                            "setor_id": setor_id,
+                            "lat": lat,
+                            "lng": lng,
+                            "endereco": endereco,
+                            "telefone": telefone,
+                            "link_maps": link_maps.strip(),
+                            "observacao": observacao,
+                            "destaque": destaque,
+                            "em_estruturacao": estrut,
+                            "ativo": ativo,
+                        }
+                    )
+                    st.success(f"Base salva · lat **{fmt_coord(lat)}**, lng **{fmt_coord(lng)}**")
+                    st.rerun()
+        if editando and atual:
+            st.caption(
+                f"Coordenadas gravadas: **{fmt_coord(atual['lat'])}**, **{fmt_coord(atual['lng'])}**"
+            )
+
+        if esc != "— nova base —" and atual:
+            st.divider()
+            st.markdown("#### Remover base")
+            st.caption(
+                f"Selecionada: **{atual['titulo']}** (`{esc}`). "
+                "Use **Ocultar** para sumir da consulta ou **Excluir** para apagar duplicata."
+            )
+            c_ocultar, c_excluir = st.columns(2)
+            with c_ocultar:
+                if st.button("Ocultar da consulta", type="secondary", use_container_width=True):
+                    db.remover_base(esc)
+                    st.warning("Base ocultada — não aparece mais na consulta pública.")
+                    st.rerun()
+            with c_excluir:
+                confirmar = st.checkbox(
+                    "Confirmo exclusão permanente",
+                    key=f"confirm_del_{esc}",
                 )
-                st.success("Base salva.")
-                st.rerun()
-        if esc != "— nova base —" and st.button("Desativar base selecionada", type="secondary"):
-            db.remover_base(esc)
-            st.warning("Base desativada.")
-            st.rerun()
+                if st.button(
+                    "Excluir base permanentemente",
+                    type="primary",
+                    disabled=not confirmar,
+                    use_container_width=True,
+                ):
+                    db.excluir_base(esc)
+                    st.success("Base excluída do sistema.")
+                    st.rerun()
 
     with aba_colab:
         st.markdown("### Colaboradores por base")
