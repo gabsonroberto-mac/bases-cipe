@@ -1,0 +1,165 @@
+{
+  "setores": [
+    {
+      "id": 1,
+      "nome": "Setor 1",
+      "cor": "#2E7D32",
+      "municipios": [
+        "Cachoeira",
+        "Governador Mangabeira",
+        "Itaparica",
+        "Maragogipe",
+        "Muritiba",
+        "São Félix",
+        "Salinas da Margarida",
+        "Santo Amaro",
+        "Saubara",
+        "Vera Cruz"
+      ]
+    },
+    {
+      "id": 2,
+      "nome": "Setor 2",
+      "cor": "#EF6C00",
+      "municipios": [
+        "Cairu",
+        "Camamu",
+        "Gandu",
+        "Igrapiúna",
+        "Ituberá",
+        "Jaguaripe",
+        "Valença",
+        "Nilo Peçanha",
+        "Piraí do Norte",
+        "Presidente Tancredo Neves",
+        "Taperoá",
+        "Teolândia",
+        "Wenceslau Guimarães"
+      ]
+    },
+    {
+      "id": 3,
+      "nome": "Setor 3",
+      "cor": "#1565C0",
+      "municipios": [
+        "Amargosa",
+        "Aratuípe",
+        "Brejões",
+        "Cabaçeiras do Paraguaçu",
+        "Castro Alves",
+        "Conceição do Almeida",
+        "Cruz das Almas",
+        "Dom Macedo Costa",
+        "Elísio Medrado",
+        "Jiquiriçá",
+        "Laje",
+        "Milagres",
+        "Mutuípe",
+        "Muniz Ferreira",
+        "Nazaré",
+        "Santo Antônio de Jesus",
+        "São Felipe",
+        "São Miguel das Matas",
+        "Sapeaçu",
+        "Ubaíra",
+        "Varzedo"
+      ]
+    }
+  ],
+  "pontos": [
+    {
+      "id": "base_maragogipe",
+      "titulo": "Base Maragogipe",
+      "tipo": "base",
+      "setor_id": 1,
+      "lat": -12.7789,
+      "lng": -38.9192,
+      "endereco": "Maragogipe — BA",
+      "observacao": "Base destacada — Setor 1",
+      "destaque": true
+    },
+    {
+      "id": "base_salinas",
+      "titulo": "Base Salinas da Margarida",
+      "tipo": "base",
+      "setor_id": 1,
+      "lat": -12.8683,
+      "lng": -38.8764,
+      "endereco": "Salinas da Margarida — BA",
+      "observacao": "Base destacada — Setor 1"
+    },
+    {
+      "id": "base_gov_mangabeira",
+      "titulo": "Base Governador Mangabeira",
+      "tipo": "base",
+      "setor_id": 1,
+      "lat": -12.6039,
+      "lng": -38.7558,
+      "endereco": "Governador Mangabeira — BA",
+      "observacao": "Base destacada — Setor 1"
+    },
+    {
+      "id": "base_valenca",
+      "titulo": "Base Valença",
+      "tipo": "base",
+      "setor_id": 2,
+      "lat": -13.3703,
+      "lng": -39.073,
+      "endereco": "Valença — BA",
+      "observacao": "Base destacada — Setor 2",
+      "destaque": true
+    },
+    {
+      "id": "base_ptn",
+      "titulo": "Base Presidente Tancredo Neves",
+      "tipo": "base",
+      "setor_id": 2,
+      "lat": -13.4444,
+      "lng": -39.4189,
+      "endereco": "Presidente Tancredo Neves — BA",
+      "observacao": "Base destacada — Setor 2"
+    },
+    {
+      "id": "base_itubera",
+      "titulo": "Base Ituberá",
+      "tipo": "base",
+      "setor_id": 2,
+      "lat": -13.7322,
+      "lng": -39.1489,
+      "endereco": "Ituberá — BA",
+      "observacao": "Base destacada — Setor 2"
+    },
+    {
+      "id": "base_laje",
+      "titulo": "Base Laje",
+      "tipo": "base",
+      "setor_id": 3,
+      "lat": -13.1853,
+      "lng": -39.4231,
+      "endereco": "Laje — BA",
+      "observacao": "Base destacada — Setor 3",
+      "destaque": true
+    },
+    {
+      "id": "base_milagres",
+      "titulo": "Base Milagres",
+      "tipo": "base",
+      "setor_id": 3,
+      "lat": -12.8658,
+      "lng": -39.8642,
+      "endereco": "Milagres — BA",
+      "observacao": "Base destacada — Setor 3"
+    },
+    {
+      "id": "base_sao_miguel",
+      "titulo": "Base São Miguel das Matas",
+      "tipo": "base",
+      "setor_id": 3,
+      "lat": -13.1239,
+      "lng": -39.4717,
+      "endereco": "São Miguel das Matas — BA",
+      "observacao": "Em processo de estruturação",
+      "em_estruturacao": true
+    }
+  ]
+}
