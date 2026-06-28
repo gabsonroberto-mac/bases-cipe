@@ -1,49 +1,29 @@
 # Consulta de Bases – CIPE Recôncavo
 
-App **Python + Streamlit** — consulta das 9 bases, mapa e municípios por setor.
+Python + Streamlit no Render.com
 
-Sem Flutter, sem Supabase. Dados em `data/mapa_cipe.json` (origem: `consulta_cipe_r`).
+## Funcionalidades
 
-## Rodar no PC
+- **Mapa** com setores coloridos (GeoJSON) + pinos das bases
+- **Lista de bases** com colaboradores e telefones
+- **Reportar problema** — chamado com foto (manutenção)
+- **Administração** (PIN padrão: `cipe2026`) — bases, colaboradores, chamados, setores
 
-```bash
-cd streamlit/bases-cipe
-pip install -r requirements.txt
-streamlit run app.py
+## Arquivos importantes
+
+```
+app.py
+database.py
+mapa.py
+data/mapa_cipe.json
+data/mapa_delimitadores.geojson   ← mapa colorido por setor
 ```
 
-## Deploy Render.com → bases.applab.cloud
+## Deploy Render
 
-### 1. GitHub
+Push no GitHub → Render redeploy automático.
 
-Repositório **`bases-cipe`** (público) com:
-
-- `app.py`
-- `requirements.txt`
-- `render.yaml`
-- `data/mapa_cipe.json`
-- `.streamlit/config.toml`
-
-### 2. Render
-
-1. [render.com](https://render.com) → **New +** → **Web Service**
-2. Repo **`bases-cipe`**
-3. **Create Web Service**
-4. URL: `https://bases-cipe.onrender.com`
-
-### 3. Domínio
-
-Render → **Settings** → **Custom Domains** → `bases.applab.cloud` → **Verify**
-
-Hostinger DNS:
-
-| Tipo | Nome | Valor |
-|------|------|-------|
-| CNAME | `bases` | `bases-cipe.onrender.com` |
-
-### 4. Atualizar dados
-
-Edite `data/mapa_cipe.json` no GitHub → push → Render redeploy automático.
+**Nota:** no plano grátis, chamados/fotos/colaboradores ficam no SQLite local do container — podem resetar ao redeploy. Para produção, use disco persistente no Render ou banco externo.
 
 ## WhatsApp
 
